@@ -19,10 +19,10 @@ import org.apache.zookeeper.CreateMode;
 
 import backtype.storm.task.TopologyContext;
 import backtype.storm.utils.Utils;
-import cn.sina.api.commons.scribe.LogEntry;
-import cn.sina.api.commons.scribe.ResultCode;
-import cn.sina.api.commons.scribe.scribe;
-import cn.sina.api.commons.scribe.scribe.Iface;
+import com.weibo.api.platform.prism.scribe.LogEntry;
+import com.weibo.api.platform.prism.scribe.ResultCode;
+import com.weibo.api.platform.prism.scribe.scribe;
+import com.weibo.api.platform.prism.scribe.scribe.Iface;
 
 import com.facebook.fb303.fb_status;
 import com.netflix.curator.framework.CuratorFramework;

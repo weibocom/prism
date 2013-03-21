@@ -6,7 +6,6 @@ import java.util.Date;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
-import org.apache.http.impl.cookie.DateParseException;
 import org.apache.log4j.Logger;
 
 import com.weibo.api.platform.prism.storm.core.PrismScribeLog.DataType;
