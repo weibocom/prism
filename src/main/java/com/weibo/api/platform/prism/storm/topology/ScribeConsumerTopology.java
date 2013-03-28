@@ -43,7 +43,7 @@ public class ScribeConsumerTopology {
 		String zkPrismSocketServerPath = args[2];
 		ScribeSpout ss = new ScribeSpout(zkStr, zkRoot, prismSpoutId);
 		TopologyBuilder builder = new TopologyBuilder();
-		builder.setSpout(prismSpoutId, ss, 6);
+		builder.setSpout(prismSpoutId, ss, 1);
 		
 		addComponentToTopology(clazzes, prismSpoutId, builder);
 		
@@ -53,9 +53,9 @@ public class ScribeConsumerTopology {
 //		conf.put(Config.TOPOLOGY_MAX_SPOUT_PENDING, 1000);
 		conf.put("prism.socket.server.path", zkPrismSocketServerPath);
 		conf.put("prism.zk", zkStr);
-		conf.setNumWorkers(8);
+		conf.setNumWorkers(3);
 		// Topology run
-		String mcqComsumerTopologyId = "PRISM-TOPOLOGY";
+		String mcqComsumerTopologyId = Constants.PRISM_TOPOLOGY;
 		StormTopology topology = builder.createTopology();
 		
 		boolean clusterMode = args != null && StringUtils.equals(args[args.length - 1], "cluster");

@@ -32,15 +32,11 @@ public class ScribeSpout extends BaseRichSpout {
     LinkedBlockingQueue<String> _events;
     PrismScheme _scheme;
     ScribeReceiver _receiver;
-    String _zkStr;
-    String _zkRoot;
     String _spoutId;
     
     static Map<String, PrismScribeLogFilter> _streams; // key为streamId，value为filter
     
     public ScribeSpout(String zkStr, String zkRoot, PrismScheme scheme, String spoutId) {
-        _zkStr = zkStr;
-        _zkRoot = zkRoot;
         _scheme = scheme;
         _spoutId = spoutId;
     }
@@ -53,7 +49,7 @@ public class ScribeSpout extends BaseRichSpout {
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
         _collector = collector;
         _events = ScribeReceiver.makeEventsQueue(conf);
-        _receiver = new ScribeReceiver(_events, conf, context, _zkStr, _zkRoot);
+        _receiver = new ScribeReceiver(_events, conf, context);
         
         initAndGetStreams();
     }

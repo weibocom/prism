@@ -18,7 +18,7 @@ import com.weibo.api.platform.prism.storm.core.PrismScribeLog;
 		stream="bolt.feedmonitor.visitstatus.total",
 		groupingPolocy=StreamGroupingPolocy.SHUFFLE,
 		logFilter=FeedMonitorPrismScribeLogFilter.class,
-		parallelism=3
+		parallelism=1
 		)
 public class DataExtractBolt extends PrismTemplateBolt {
 	private static final Logger LOG = Logger.getLogger(DataExtractBolt.class);
@@ -26,12 +26,13 @@ public class DataExtractBolt extends PrismTemplateBolt {
 	int total = 0;
 	long lastFlushTime = 0;
 	int intervalSeconds = 3;//每隔三秒钟输出一次统计数据
+	
+	public void init(){
+		lastFlushTime = System.currentTimeMillis();		
+	}
 
 	@Override
 	public List<List<Object>> onMessage(List<Object> values) {
-		if(lastFlushTime == 0){
-			lastFlushTime = System.currentTimeMillis();
-		}
 		if(System.currentTimeMillis() - lastFlushTime >= intervalSeconds){
 			LOG.info("the total feed average request is:" + (total * 1.0 / intervalSeconds));
 			total = 0;

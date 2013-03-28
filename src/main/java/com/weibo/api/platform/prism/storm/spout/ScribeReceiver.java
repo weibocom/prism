@@ -15,19 +15,15 @@ import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.apache.zookeeper.CreateMode;
 
 import backtype.storm.task.TopologyContext;
 import backtype.storm.utils.Utils;
+
+import com.facebook.fb303.fb_status;
 import com.weibo.api.platform.prism.scribe.LogEntry;
 import com.weibo.api.platform.prism.scribe.ResultCode;
 import com.weibo.api.platform.prism.scribe.scribe;
 import com.weibo.api.platform.prism.scribe.scribe.Iface;
-
-import com.facebook.fb303.fb_status;
-import com.netflix.curator.framework.CuratorFramework;
-import com.netflix.curator.framework.CuratorFrameworkFactory;
-import com.netflix.curator.retry.RetryNTimes;
 
 public class ScribeReceiver {
 	private static final Logger LOG = Logger.getLogger(ScribeReceiver.class);
@@ -37,28 +33,20 @@ public class ScribeReceiver {
     volatile boolean _scribeActive = false;
     final Object _scribeLock = new Object();
     TServer _server;
-    String _zkStr;
-    String _zkRoot;
-    CuratorFramework _zk;
-    
+
     public static LinkedBlockingQueue<String> makeEventsQueue(Map conf) {
         Number bufferSize = (Number) conf.get("scribe.spout.buffer.size");
         if(bufferSize==null) bufferSize = 50000;
         return new LinkedBlockingQueue<String>(bufferSize.intValue());
     }
     
-    public ScribeReceiver(LinkedBlockingQueue<String> events, Map conf, TopologyContext context, String zkStr, String zkRoot) {
-        _zkStr = zkStr;
-        _zkRoot = zkRoot;
+    public ScribeReceiver(LinkedBlockingQueue<String> events, Map conf, TopologyContext context) {
         _events = events;
         
         Number putTimeout = (Number) conf.get("scribe.spout.put.timeout");
         if(putTimeout==null) putTimeout = 5;
         
-        Number portDelta = (Number) conf.get("scribe.spout.port.delta");
-        if(portDelta==null) portDelta = 2000;
-        
-        int port = context.getThisWorkerPort() + portDelta.intValue();
+        int port = 1651;
 
         String host;
         try {
@@ -67,24 +55,8 @@ public class ScribeReceiver {
             throw new RuntimeException(ex);
         }
         
-        try {
-            _zk =  CuratorFrameworkFactory.newClient(
-                    _zkStr,
-                    3000,
-                    3000,
-                    new RetryNTimes(4, 1000));
-            _zk.start();
-            _zk.create()
-               .creatingParentsIfNeeded()
-               .withMode(CreateMode.EPHEMERAL)
-               .forPath(_zkRoot + "/" + host + ":" + port);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-        
         ScribeServiceHandler handler = new ScribeServiceHandler(putTimeout.intValue());
         try {
-            //TODO: more efficient as just a nonblockingserver?
             THsHaServer.Args args = new THsHaServer.Args(new TNonblockingServerSocket(port))
                     .workerThreads(1)
                     .protocolFactory(new TBinaryProtocol.Factory())
@@ -100,13 +72,13 @@ public class ScribeReceiver {
             thread.start();
             LOG.info("Scribe Server Started:\t" + host + ":" + port);
         } catch (TTransportException ex) {
+        	LOG.info("Scribe Server Start failed:\t" + host + ":" + port, ex);
             throw new RuntimeException(ex);
         }
     }
     
     public void shutdown() {
         _server.stop();
-        _zk.close();        
     }
     
     public void activate() {

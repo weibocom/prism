@@ -1,9 +1,11 @@
 package com.weibo.api.platform.prism.storm.bolt;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.BasicOutputCollector;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseBasicBolt;
@@ -17,7 +19,16 @@ import com.weibo.api.platform.prism.storm.core.PrismScribeLogColumn;
 public abstract class PrismTemplateBolt   extends BaseBasicBolt {
 	private static final long serialVersionUID = -3673685354480948622L;
 	private static final Logger LOG = Logger.getLogger(PrismTemplateBolt.class);
-
+	
+	@Override
+    public void prepare(Map stormConf, TopologyContext context) {
+		init();
+    }
+	
+	public void init(){
+		
+	}
+	
 	@Override
 	public void execute(Tuple input, BasicOutputCollector collector) {
 		List<List<Object>> tuples = onMessage(input.getValues());
@@ -30,6 +41,7 @@ public abstract class PrismTemplateBolt   extends BaseBasicBolt {
 			}
 		}
 	}
+	
 	
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
