@@ -1,15 +1,25 @@
 package prism.scribe;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.text.ParseException;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
 import org.junit.Test;
 
-import com.weibo.api.platform.prism.storm.core.PrismScheme;
-import com.weibo.api.platform.prism.storm.core.ScribeLogScheme;
+import backtype.storm.utils.Utils;
+
+import com.netflix.curator.framework.CuratorFramework;
+import com.netflix.curator.framework.CuratorFrameworkFactory;
+import com.netflix.curator.retry.RetryNTimes;
+import com.weibo.api.prism.storm.core.PrismScheme;
+import com.weibo.api.prism.storm.core.ScribeLogScheme;
 
 
 public class PrismSchemeTest {
@@ -54,6 +64,34 @@ public class PrismSchemeTest {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+	}
+	
+	@Test
+	public void testCurator() throws Exception{
+		CuratorFramework    client = CuratorFrameworkFactory.builder().connectString("localhost:2181").connectionTimeoutMs(5000).retryPolicy(new RetryNTimes(10,3000)).sessionTimeoutMs(3000).build();
+		client.start();
+		List<String> a = client.getChildren().usingWatcher(new Watcher(){
+
+			@Override
+			public void process(WatchedEvent event) {
+				System.out.println(event.getPath());
+				
+			}}).forPath("/prism/servers/scribe/register");
+		System.out.println(a);
+		Utils.sleep(1000000);
+	}
+	
+	@Test
+	public void testZK() throws Exception{
+		ZooKeeper zk = new ZooKeeper("localhost:2181", 3000, new Watcher(){
+
+			@Override
+			public void process(WatchedEvent event) {
+				System.out.println(event.getPath());
+				
+			}});
+		System.out.println(zk.getChildren("/prism/servers/scribe/register", true));
+		Utils.sleep(1000000);
 	}
 
 }
